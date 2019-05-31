@@ -2,8 +2,8 @@
 
 
 
-// These basic ideas mainly come from a set of books
-// written by Donald Knuth in the 1960s called
+// The ideas for basic arithmetic mainly come from a set
+// of books written by Donald Knuth in the 1960s called
 // "The Art of Computer Programming".  But it is also
 // a whole lot like the ordinary arithmetic you'd do
 // on paper, and there are some comments in the code
@@ -19,7 +19,6 @@ namespace RSACrypto
 {
   class Integer
   {
-  internal bool IsNegative = false;
   private ulong[] D; // The digits.
   private int Index; // Highest digit.
   // The digit array size is fixed to keep it simple, but you might
@@ -38,7 +37,6 @@ namespace RSACrypto
 
   internal void SetToZero()
     {
-    IsNegative = false;
     Index = 0;
     D[0] = 0;
     }
@@ -47,7 +45,6 @@ namespace RSACrypto
 
   internal void SetToOne()
     {
-    IsNegative = false;
     Index = 0;
     D[0] = 1;
     }
@@ -67,9 +64,6 @@ namespace RSACrypto
 
   internal bool IsOne()
     {
-    if( IsNegative )
-      return false;
-
     if( (Index == 0) && (D[0] == 1) )
       return true;
     else
@@ -122,7 +116,6 @@ namespace RSACrypto
 
   internal void SetToMaxValue()
     {
-    IsNegative = false;
     Index = DigitArraySize - 1;
     for( int Count = 0; Count <= Index; Count++ )
       D[Count] = 0xFFFFFFFF;
@@ -130,24 +123,10 @@ namespace RSACrypto
     }
 
 
-/*
-  internal void SetToMaxValueForCRT()
-    {
-    // DigitArraySize is 512.
-    // MaxValue index is 256.
-    IsNegative = false;
-    Index = DigitArraySize >> 1;
-    for( int Count = 0; Count <= Index; Count++ )
-      D[Count] = 0xFFFFFFFF;
-
-    }
-*/
-
 
 
   internal void SetFromULong( ulong ToSet )
     {
-    IsNegative = false;
     // If ToSet was zero then D[0] would be zero and
     // Index would be zero.
     D[0] = ToSet & 0xFFFFFFFF;
@@ -164,7 +143,6 @@ namespace RSACrypto
 
   internal void Copy( Integer CopyFrom )
     {
-    IsNegative = CopyFrom.IsNegative;
     Index = CopyFrom.Index;
     for( int Count = 0; Count <= Index; Count++ )
       D[Count] = CopyFrom.D[Count];
@@ -175,7 +153,6 @@ namespace RSACrypto
 
   internal void CopyUpTo( Integer CopyFrom, int Where )
     {
-    IsNegative = CopyFrom.IsNegative;
     Index = Where;
     for( int Count = 0; Count <= Index; Count++ )
       D[Count] = CopyFrom.D[Count];
@@ -186,9 +163,6 @@ namespace RSACrypto
 
   internal bool IsEqualToULong( ulong ToTest )
     {
-    if( IsNegative )
-      return false;
-
     if( Index > 1 )
       return false;
 
@@ -216,9 +190,6 @@ namespace RSACrypto
 
   internal bool IsEqual( Integer X )
     {
-    if( IsNegative != X.IsNegative )
-      return false;
-
     // This first one is a likely way to quickly return a false.
     if( D[0] != X.D[0] )
       return false;
@@ -244,9 +215,6 @@ namespace RSACrypto
 
   internal bool IsULong()
     {
-    if( IsNegative )
-      return false;
-
     if( Index > 1 )
       return false;
     else
@@ -285,12 +253,6 @@ namespace RSACrypto
 
   internal bool ParamIsGreater( Integer X )
     {
-    // if( IsNegative )
-      // throw( new Exception( "ParamIsGreater() can't be called with negative numbers." ));
-
-    // if( X.IsNegative )
-      // throw( new Exception( "ParamIsGreater() can't be called with negative numbers." ));
-
     if( Index != X.Index )
       {
       if( X.Index > Index )
@@ -401,14 +363,6 @@ namespace RSACrypto
 
   internal void Add( Integer ToAdd )
     {
-    // There is a separate IntegerMath.Add() that is a wrapper to handle
-    // negative numbers too.
-    // if( IsNegative )
-      // throw( new Exception( "Integer.Add() is being called when it's negative." ));
-
-    // if( ToAdd.IsNegative )
-      // throw( new Exception( "Integer.Add() is being called when ToAdd is negative." ));
-
     if( ToAdd.IsULong() )
       {
       AddULong( ToAdd.GetAsULong() );
@@ -729,7 +683,6 @@ namespace RSACrypto
 
   internal bool MakeRandomOdd( int SetToIndex, byte[] RandBytes )
     {
-    IsNegative = false;
     if( SetToIndex > (DigitArraySize - 3))
       throw( new Exception( "MakeRandomOdd Index is too high." ));
 
@@ -838,7 +791,6 @@ namespace RSACrypto
 
   internal bool SetFromAsciiString( string InString )
     {
-    IsNegative = false;
     Index = 0;
     if( InString.Length > (DigitArraySize - 3))
       return false;
@@ -969,7 +921,6 @@ namespace RSACrypto
     if( InArray.Length > (DigitArraySize - 3))
       throw( new Exception( "Position >= D.Length in SetFromBigEndianByteArray()." ));
 
-    IsNegative = false;
     Index = 0;
 
     // This is unnecessary.
@@ -1029,5 +980,3 @@ namespace RSACrypto
 
   }
 }
-
-
