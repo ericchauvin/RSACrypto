@@ -21,7 +21,7 @@ namespace RSACrypto
   // D[7] = 2;
   // D[8] = 1; // Most significant digit.
 
-  private const int DigitArraySize = 4000;
+  private const int DigitArraySize = 10000;
   private int Index = 0;
   private uint[] D;
 
@@ -100,4 +100,3 @@ namespace RSACrypto
 
   }
 }
-
