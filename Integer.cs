@@ -2,12 +2,17 @@
 
 
 
-// The ideas for basic arithmetic mainly come from a set
-// of books written by Donald Knuth in the 1960s called
-// "The Art of Computer Programming".  But it is also
-// a whole lot like the ordinary arithmetic you'd do
-// on paper, and there are some comments in the code
-// below about that.
+// All of this basic math is pretty much basic Computer Science
+// going back at least to the 1960s and Donald Knuth's books.
+// Actually, back to the 1940s or so.  Like John von Neumann
+// writing about things in the later 1940s, just after
+// World War 2.  So I don't think it would make sense to put
+// references (to cite sources) to things that are basic to
+// Computer Science.
+// But if you are new to doing math with large integers you 
+// should see the Base10Number.cs file first, and then read
+// some of the notes (which explain some things) in this file.
+// And see the IntegerMath.cs file too.
 
 
 
@@ -19,6 +24,7 @@ namespace RSACrypto
 {
   class Integer
   {
+  internal bool IsNegative = false;
   private ulong[] D; // The digits.
   private int Index; // Highest digit.
   // The digit array size is fixed to keep it simple, but you might
@@ -37,6 +43,7 @@ namespace RSACrypto
 
   internal void SetToZero()
     {
+    IsNegative = false;
     Index = 0;
     D[0] = 0;
     }
@@ -45,6 +52,7 @@ namespace RSACrypto
 
   internal void SetToOne()
     {
+    IsNegative = false;
     Index = 0;
     D[0] = 1;
     }
@@ -64,6 +72,9 @@ namespace RSACrypto
 
   internal bool IsOne()
     {
+    if( IsNegative )
+      return false;
+
     if( (Index == 0) && (D[0] == 1) )
       return true;
     else
@@ -116,6 +127,7 @@ namespace RSACrypto
 
   internal void SetToMaxValue()
     {
+    IsNegative = false;
     Index = DigitArraySize - 1;
     for( int Count = 0; Count <= Index; Count++ )
       D[Count] = 0xFFFFFFFF;
@@ -127,6 +139,7 @@ namespace RSACrypto
 
   internal void SetFromULong( ulong ToSet )
     {
+    IsNegative = false;
     // If ToSet was zero then D[0] would be zero and
     // Index would be zero.
     D[0] = ToSet & 0xFFFFFFFF;
@@ -143,6 +156,7 @@ namespace RSACrypto
 
   internal void Copy( Integer CopyFrom )
     {
+    IsNegative = CopyFrom.IsNegative;
     Index = CopyFrom.Index;
     for( int Count = 0; Count <= Index; Count++ )
       D[Count] = CopyFrom.D[Count];
@@ -153,6 +167,11 @@ namespace RSACrypto
 
   internal void CopyUpTo( Integer CopyFrom, int Where )
     {
+    IsNegative = CopyFrom.IsNegative;
+
+    if( Where > CopyFrom.Index )
+      throw( new Exception( "Where > CopyFrom.Index in Integer.CopyUpTo()." ));
+
     Index = Where;
     for( int Count = 0; Count <= Index; Count++ )
       D[Count] = CopyFrom.D[Count];
@@ -163,13 +182,16 @@ namespace RSACrypto
 
   internal bool IsEqualToULong( ulong ToTest )
     {
+    if( IsNegative )
+      return false;
+
     if( Index > 1 )
       return false;
 
     if( D[0] != (ToTest & 0xFFFFFFFF))
       return false;
 
-    // The bottom 32 bits are equal.
+    // The bottom 32 bits are equal at this point.
     if( Index == 0 )
       {
       if( (ToTest >> 32) != 0 )
@@ -190,6 +212,9 @@ namespace RSACrypto
 
   internal bool IsEqual( Integer X )
     {
+    if( IsNegative != X.IsNegative )
+      return false;
+
     // This first one is a likely way to quickly return a false.
     if( D[0] != X.D[0] )
       return false;
@@ -215,6 +240,8 @@ namespace RSACrypto
 
   internal bool IsULong()
     {
+    // if( IsNegative )
+
     if( Index > 1 )
       return false;
     else
@@ -253,6 +280,12 @@ namespace RSACrypto
 
   internal bool ParamIsGreater( Integer X )
     {
+    if( IsNegative )
+      throw( new Exception( "ParamIsGreater() can't be called with negative numbers." ));
+
+    if( X.IsNegative )
+      throw( new Exception( "ParamIsGreater() can't be called with negative numbers." ));
+
     if( Index != X.Index )
       {
       if( X.Index > Index )
@@ -299,14 +332,6 @@ namespace RSACrypto
       return; // Nothing to Carry.
       }
 
-    Reorganize();
-    }
-
-
-
-
-  internal void Reorganize()
-    {
     ulong Carry = D[0] >> 32;
     D[0] = D[0] & 0xFFFFFFFF;
     for( int Count = 1; Count <= Index; Count++ )
@@ -320,7 +345,7 @@ namespace RSACrypto
       {
       Index++;
       if( Index >= DigitArraySize )
-        throw( new Exception( "Integer.Reorganize() overflow." ));
+        throw( new Exception( "Integer.Increment() overflow." ));
 
       D[Index] = Carry;
       }
@@ -355,7 +380,23 @@ namespace RSACrypto
 
       }
 
-    Reorganize();
+    ulong Carry = D[0] >> 32;
+    D[0] = D[0] & 0xFFFFFFFF;
+    for( int Count = 1; Count <= Index; Count++ )
+      {
+      ulong Total = Carry + D[Count];
+      D[Count] = Total & 0xFFFFFFFF;
+      Carry = Total >> 32;
+      }
+
+    if( Carry != 0 )
+      {
+      Index++;
+      if( Index >= DigitArraySize )
+        throw( new Exception( "Integer.AddULong() overflow." ));
+
+      D[Index] = Carry;
+      }
     }
 
 
@@ -363,6 +404,14 @@ namespace RSACrypto
 
   internal void Add( Integer ToAdd )
     {
+    // There is a separate IntegerMath.Add() that is a wrapper to handle
+    // negative numbers too.
+    if( IsNegative )
+      throw( new Exception( "Integer.Add() is being called when it's negative." ));
+
+    if( ToAdd.IsNegative )
+      throw( new Exception( "Integer.Add() is being called when ToAdd is negative." ));
+
     if( ToAdd.IsULong() )
       {
       AddULong( ToAdd.GetAsULong() );
@@ -388,7 +437,25 @@ namespace RSACrypto
 
       }
 
-    Reorganize();
+    // After they've been added, reorganize it.
+    ulong Carry = D[0] >> 32;
+    D[0] = D[0] & 0xFFFFFFFF;
+    LocalIndex = Index;
+    for( int Count = 1; Count <= LocalIndex; Count++ )
+      {
+      ulong Total = Carry + D[Count];
+      D[Count] = Total & 0xFFFFFFFF;
+      Carry = Total >> 32;
+      }
+
+    if( Carry != 0 )
+      {
+      Index++;
+      if( Index >= DigitArraySize )
+        throw( new Exception( "Integer.Add() overflow." ));
+
+      D[Index] = Carry;
+      }
     }
 
 
@@ -669,7 +736,7 @@ namespace RSACrypto
       throw( new Exception( "Where < 0 in SetDigitAndClear()." ));
 
     if( (ToSet >> 32) != 0 )
-      throw( new Exception( "SetDigitAndClear() is being set with bad values." ));
+      throw( new Exception( "Integer.SetDigitAndClear() (ToSet >> 32) != 0" ));
 
     Index = Where;
     D[Index] = ToSet;
@@ -683,6 +750,7 @@ namespace RSACrypto
 
   internal bool MakeRandomOdd( int SetToIndex, byte[] RandBytes )
     {
+    IsNegative = false;
     if( SetToIndex > (DigitArraySize - 3))
       throw( new Exception( "MakeRandomOdd Index is too high." ));
 
@@ -712,7 +780,7 @@ namespace RSACrypto
 
     // Make sure there isn't a zero at the top.
     if( D[Index] == 0 )
-      throw( new Exception( "GetNonZeroBytes() was used to get these bytes." ));
+      throw( new Exception( "Exception because GetNonZeroBytes() was used to get these bytes." ));
 
     // Test:
     for( int Count = 0; Count <= Index; Count++ )
@@ -788,9 +856,10 @@ namespace RSACrypto
 
 
 
-
+  // This is used for testing encryption of a text string.
   internal bool SetFromAsciiString( string InString )
     {
+    IsNegative = false;
     Index = 0;
     if( InString.Length > (DigitArraySize - 3))
       return false;
@@ -912,15 +981,15 @@ namespace RSACrypto
 
 
 
-  // Because of the standards used with TLS, this will typically
-  // have one leading zero byte so that it doesn't get confused
-  // with a negative sign bit.  Sometimes it will, sometimes it
-  // won't.
+  // Because of the standards used with TLS, this will typically have one
+  // leading zero byte so that it doesn't get confused with a negative
+  // sign bit.  Sometimes it will, sometimes it won't.
   internal void SetFromBigEndianByteArray( byte[] InArray )
     {
     if( InArray.Length > (DigitArraySize - 3))
       throw( new Exception( "Position >= D.Length in SetFromBigEndianByteArray()." ));
 
+    IsNegative = false;
     Index = 0;
 
     // This is unnecessary.
