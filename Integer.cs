@@ -2,20 +2,6 @@
 
 
 
-// All of this basic math is pretty much basic Computer Science
-// going back at least to the 1960s and Donald Knuth's books.
-// Actually, back to the 1940s or so.  Like John von Neumann
-// writing about things in the later 1940s, just after
-// World War 2.  So I don't think it would make sense to put
-// references (to cite sources) to things that are basic to
-// Computer Science.
-// But if you are new to doing math with large integers you 
-// should see the Base10Number.cs file first, and then read
-// some of the notes (which explain some things) in this file.
-// And see the IntegerMath.cs file too.
-
-
-
 using System;
 using System.Text;
 
@@ -119,7 +105,7 @@ namespace RSACrypto
     {
     Index++;
     if( Index >= DigitArraySize )
-      throw( new Exception( "Integer IncrementIndex() overflow." ));
+      throw( new Exception( "Integer.IncrementIndex() overflow." ));
 
     }
 
