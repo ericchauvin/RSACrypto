@@ -11,4 +11,5 @@ I'm not sure how to cite references for basic arithmetic.  I mean should I cite 
 One of the articles that helped me to understand division was: Brinch Hansen, Multiple-Length Division Revisited, 1994
 http://brinch-hansen.net/papers/1994b.pdf
 
+If it's a well-known standard algorithm, like the Euclidean Algorithm, you can look it up on Google or Wikipedia.  I mean if it's Computer Science 101 it doesn't seem like you'd have to cite Euclid himself, or something like that.
 
