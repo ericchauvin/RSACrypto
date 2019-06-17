@@ -56,6 +56,8 @@ https://docs.microsoft.com/en-us/visualstudio/msbuild/common-msbuild-project-pro
   </ItemGroup>
 
  <ItemGroup>
+    <Compile Include="StandardAlgorithms.cs" />
+    <Compile Include="SquareRoot.cs" />
     <Compile Include="Multiplication.cs" />
     <Compile Include="Division.cs" />
     <Compile Include="ChineseRemainder.cs" />
